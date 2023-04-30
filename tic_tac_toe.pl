@@ -25,7 +25,9 @@ computer_play :-
         assert_victory(NewBoard, o).
 
 initial_board(N, Board) :-
-        length(Row, N),
+        N > 1,
+        NumberOfColumns is N + 1,
+        length(Row, NumberOfColumns),
         maplist(=(e), Row),
         length(Board, N),
         maplist(=(Row), Board),
@@ -39,10 +41,11 @@ print_board([Board|Tail]) :-
 
 read_play(Board) :-
         length(Board, NumberOfRows),
+        NumberOfColumns is NumberOfRows + 1,
         repeat,
         format('Digite a linha (1 a ~w): ', [NumberOfRows]),
         read(Row),
-        format('Digite a coluna (1 a ~w): ', [NumberOfRows]),
+        format('Digite a coluna (1 a ~w): ', [NumberOfColumns]),
         read(Col),
         get_board_element(Board, Row, Col, Element),
         assert_valid_play(Element),
@@ -65,21 +68,41 @@ assert_victory(Board, Symbol) :-
         format('Jogador ~w ganhou o Jogo da Velha Clássico!~n', [Symbol]).
 
 check_victory_state(Board, Symbol) :-
-        check_row_victory(Board, Symbol);
-        check_col_victory(Board, Symbol);
-        check_diagonal_victory(Board, Symbol);
+        check_row_victory(Board, Symbol), !;
+        check_col_victory(Board, Symbol), !;
+        check_diagonal_victory(Board, Symbol), !;
         check_anti_diagonal_victory(Board, Symbol).
 
 check_col_victory(Board, Symbol) :-
         transpose(Board, TransposedBoard),
-        check_row_victory(TransposedBoard, Symbol).
+        length(TransposedBoard, NumberOfRows),
+        NumberOfColumns is NumberOfRows - 1,
+        length(VictoryRow, NumberOfColumns),
+        maplist(=(Symbol), VictoryRow),
+        member(VictoryRow, TransposedBoard),
+        !.
 
 check_row_victory(Board, Symbol) :-
-        length(Board, NumberOfRows),
-        length(VictoryRow, NumberOfRows),
-        maplist(=(Symbol), VictoryRow),
-        member(VictoryRow, Board),
-        !.
+        check_row_victory(Board, 1, Symbol).
+
+check_row_victory(Board, RowIndex, Symbol) :-
+        length(Board, N),
+        RowIndex =< N,
+        nth1(RowIndex, Board, Row),
+        (
+                check_start_of_row(Row, Symbol), !;
+                check_end_of_row(Row, Symbol), !;
+                NewRowIndex is RowIndex + 1,
+                check_row_victory(Board, NewRowIndex, Symbol)
+        ).
+
+
+check_end_of_row([_|Tail], Symbol) :-
+        maplist(==(Symbol), Tail).
+
+check_start_of_row(Row, Symbol) :-
+        reverse(Row, ReversedRow),
+        check_end_of_row(ReversedRow, Symbol).
 
 check_anti_diagonal_victory(Board, Symbol) :-
         reverse(Board, ReversedBoard),
@@ -94,7 +117,6 @@ replace_board(NewBoard) :-
         asserta(board(NewBoard)).
 
 assert_valid_play(Element) :- Element = e.
-
 
 get_diagonal(Matrix, Diagonal) :-
     get_diagonal(Matrix, 1, Diagonal).
