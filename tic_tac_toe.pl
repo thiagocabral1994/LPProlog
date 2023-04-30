@@ -12,7 +12,8 @@ play(NumberOfRows) :-
 
 human_play :-
         board(Board),
-        read_play(Board),
+        % read_play(Board),
+        read_play2(Board),
         board(NewBoard),
         print_board(NewBoard),
         assert_victory(NewBoard, x).
@@ -52,11 +53,31 @@ read_play(Board) :-
         replace_board_element(Board, Row, Col, x),
         !.
 
+read_play2(Board) :-
+        length(Board, NumberOfRows),
+        NumberOfColumns is NumberOfRows + 1,
+        format('Digite a coluna (1 a ~w): ', [NumberOfColumns]),
+        read(Col),
+        get_board_row(Board, Row, Col),
+        get_board_element(Board, Row, Col, Element),
+        assert_valid_play(Element),
+        replace_board_element(Board, Row, Col, x),
+        !.
+
 get_board_element(Board, RowIndex, ColumnIndex, Element) :-
         nth1(RowIndex, Board, Row),
         nth1(ColumnIndex, Row, Element).
 
+get_board_row(Board, RowIndex, ColumnIndex) :-
+
+		transpose(Board, TransposedBoard),
+        nth1(ColumnIndex, TransposedBoard, Column),
+        findall(Index, nth1(Index, Column, e), RowPositions),
+		max_list(RowPositions, RowIndex).
+
+
 replace_board_element(Board, RowIndex, ColumnIndex, NewElement) :-
+
         nth1(RowIndex, Board, OldRow, TransferBoard),
         nth1(ColumnIndex, OldRow, e, TransferRow),
         nth1(ColumnIndex, NewRow, NewElement, TransferRow),
