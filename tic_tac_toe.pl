@@ -106,25 +106,32 @@ check_start_of_row(Row, Symbol) :-
 
 check_anti_diagonal_victory(Board, Symbol) :-
         reverse(Board, ReversedBoard),
-        check_diagonal_victory(ReversedBoard, Symbol).
+        assert_diagonal(ReversedBoard, 1, Symbol).
 
 check_diagonal_victory(Board, Symbol) :-
-        get_diagonal(Board, Diagonal),
-        maplist(==(Symbol), Diagonal).
+        assert_diagonal(Board, 1, Symbol).
+
+assert_diagonal(Board, I, Symbol) :-
+        length(Board, NumberOfRows),
+        I =< NumberOfRows,
+        (
+                get_diagonal(Board, I, Diagonal),
+                length(Diagonal, NumberOfRows),
+                maplist(==(Symbol), Diagonal), !;
+                I1 is I + 1,
+                assert_diagonal(Board, I1, Symbol)
+        ).
+
+get_diagonal([], _, []).
+    
+get_diagonal([Row|Rest], I, [Element|Diagonal]) :-
+        nth1(I, Row, Element),
+        I1 is I + 1,
+        get_diagonal(Rest, I1, Diagonal).
 
 replace_board(NewBoard) :-
         retractall(board(_)),
         asserta(board(NewBoard)).
 
 assert_valid_play(Element) :- Element = e.
-
-get_diagonal(Matrix, Diagonal) :-
-    get_diagonal(Matrix, 1, Diagonal).
-
-get_diagonal([], _, []).
-    
-get_diagonal([Row|Rest], I, [Element|Diagonal]) :-
-    nth1(I, Row, Element),
-    I1 is I + 1,
-    get_diagonal(Rest, I1, Diagonal).
 
