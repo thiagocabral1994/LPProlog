@@ -16,14 +16,16 @@ human_play :-
         read_play2(Board),
         board(NewBoard),
         print_board(NewBoard),
-        assert_victory(NewBoard, x).
+        assert_victory(NewBoard, x),
+        writeln('Você ganhou o jogo da Velha!').
 
 computer_play :-
         % board(Board),
         % read_play(Board),
         board(NewBoard),
         print_board(NewBoard),
-        assert_victory(NewBoard, o).
+        assert_victory(NewBoard, o),
+        writeln('Computador ganhou o jogo da Velha!').
 
 initial_board(N, Board) :-
         N > 1,
@@ -50,7 +52,8 @@ read_play(Board) :-
         read(Col),
         get_board_element(Board, Row, Col, Element),
         assert_valid_play(Element),
-        replace_board_element(Board, Row, Col, x),
+        replace_board_element(Board, Row, Col, x, NewBoard),
+        replace_board(NewBoard),
         !.
 
 read_play2(Board) :-
@@ -61,7 +64,8 @@ read_play2(Board) :-
         get_board_row(Board, Row, Col),
         get_board_element(Board, Row, Col, Element),
         assert_valid_play(Element),
-        replace_board_element(Board, Row, Col, x),
+        replace_board_element(Board, Row, Col, x, NewBoard),
+        replace_board(NewBoard),
         !.
 
 get_board_element(Board, RowIndex, ColumnIndex, Element) :-
@@ -69,24 +73,19 @@ get_board_element(Board, RowIndex, ColumnIndex, Element) :-
         nth1(ColumnIndex, Row, Element).
 
 get_board_row(Board, RowIndex, ColumnIndex) :-
-
-		transpose(Board, TransposedBoard),
+	transpose(Board, TransposedBoard),
         nth1(ColumnIndex, TransposedBoard, Column),
         findall(Index, nth1(Index, Column, e), RowPositions),
-		max_list(RowPositions, RowIndex).
+	max_list(RowPositions, RowIndex).
 
-
-replace_board_element(Board, RowIndex, ColumnIndex, NewElement) :-
-
+replace_board_element(Board, RowIndex, ColumnIndex, NewElement, NewBoard) :-
         nth1(RowIndex, Board, OldRow, TransferBoard),
         nth1(ColumnIndex, OldRow, e, TransferRow),
         nth1(ColumnIndex, NewRow, NewElement, TransferRow),
-        nth1(RowIndex, NewBoard, NewRow, TransferBoard),
-        replace_board(NewBoard).
+        nth1(RowIndex, NewBoard, NewRow, TransferBoard).
 
 assert_victory(Board, Symbol) :-
-        check_victory_state(Board, Symbol),
-        format('Jogador ~w ganhou o Jogo da Velha Clássico!~n', [Symbol]).
+        check_victory_state(Board, Symbol).
 
 check_victory_state(Board, Symbol) :-
         check_row_victory(Board, Symbol), !;
@@ -156,3 +155,42 @@ replace_board(NewBoard) :-
 
 assert_valid_play(Element) :- Element = e.
 
+% MINMAX para o jogador 'o'
+minmax :-
+        writeln('TODO').
+
+get_next_available_board_state(NewBoard) :-
+        board(Board),
+        get_next_available_board_state(Board, o, NewBoard),
+        print_board(NewBoard).
+
+% Isso aqui ainda não tá certo. To tentando fazer sentido aqui.
+get_next_available_board_state(Board, Symbol, NewBoard) :- 
+        loop_through(Row, Col),
+        get_board_element(Board, Row, Col, Element),
+        Element = e,
+        replace_board_element(Board, Row, Col, Symbol, NewBoard),
+        print_board(NewBoard),
+        nl,
+        (
+                assert_victory(NewBoard, x), fail;
+                assert_victory(NewBoard, o);
+                (
+                        Symbol = x -> get_next_available_board_state(NewBoard, o, _);
+                        get_next_available_board_state(NewBoard, x, _), fail
+                )
+        ), !.
+
+get_number_of_rows(NumberOfRows) :-
+        board(Board),
+        length(Board, NumberOfRows).
+
+get_number_of_cols(NumberOfColumns) :-
+        get_number_of_rows(NumberOfRows),
+        NumberOfColumns is NumberOfRows + 1.
+
+loop_through(Row, Col) :-
+        get_number_of_rows(NumberOfRows),
+        get_number_of_cols(NumberOfColumns),
+        between(1, NumberOfRows, Row),
+        between(1, NumberOfColumns, Col).
