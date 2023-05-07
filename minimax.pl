@@ -13,15 +13,16 @@
 % segundo nível de busca. O limite de profundidade é necessário devido à complexidade da busca.
 %
 % 3) Caso seja permitido aprofundar na profundidade, minmax será invocado recursivamente.
-minimax(Board, BestBoard) :-
-        map_valid_board_play(Board, Coordinates),
-        minimax(Board, o, 0, Coordinates, [], BoardStates),
+minimax(Version, Board, BestBoard) :-
+        map_valid_board_play(Version, Board, Coordinates),
+        minimax(Version, Board, o, 0, Coordinates, [], BoardStates),
         find_best_score(o, BoardStates, BestState),
         BestState = (BestBoard, _).
 
-minimax(_, _, _, [], Acc, Acc).
-minimax(Board, Symbol, Depth, [(Row, Col) | Tail], Acc, BoardStates) :-
+minimax(_, _, _, _, [], Acc, Acc).
+minimax(Version, Board, Symbol, Depth, [(Row, Col) | Tail], Acc, BoardStates) :-
         replace_board_element(Board, Row, Col, Symbol, NewBoard),
+
         get_score(NewBoard, Score, Depth),
         (
                 (
@@ -42,13 +43,12 @@ minimax(Board, Symbol, Depth, [(Row, Col) | Tail], Acc, BoardStates) :-
                         % Empate com profundidade disponível
                         toggle_symbol(Symbol, NewSymbol),
                         NewDepth is Depth + 1,
-
-                        map_valid_board_play(NewBoard, ChildCoordinates),
-                        minimax(NewBoard, NewSymbol, NewDepth, ChildCoordinates, [], ChildBoardStates),
+                        map_valid_board_play(Version, NewBoard, ChildCoordinates),
+                        minimax(Version, NewBoard, NewSymbol, NewDepth, ChildCoordinates, [], ChildBoardStates),
                         find_best_score(NewSymbol, ChildBoardStates, BestChildState),
                         BestChildState = (_, BestChildScore),
                         append(Acc, [(NewBoard, BestChildScore)], Results)
                 ),
-                minimax(Board, Symbol, Depth, Tail, Results, BoardStates)
+                minimax(Version, Board, Symbol, Depth, Tail, Results, BoardStates)
         ), !.
 

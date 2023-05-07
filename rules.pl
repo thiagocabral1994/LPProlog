@@ -48,15 +48,43 @@ find_best_score(Symbol, [Head|Tail], Acc, BestState) :-
 
 
 % Mapeia uma lista de coordenadas disponívels `e` para serem jogadas dado um tabuleiro `Board`. 
-% Este predicado varre linha por linha recursivamente.
-map_valid_board_play(Board, Coordinates) :-
-        map_valid_board_play(Board, 1, [], Coordinates).
-map_valid_board_play([], _, Acc, Acc).
-map_valid_board_play([Row|Tail], RowIndex, Acc, Coordinates) :-
+map_valid_board_play(Version, Board, Coordinates) :-
+        (   isNormalPlay(Version)
+        ->  map_valid_board_normal_play(Board, 1, [], Coordinates)
+        ;   
+        map_valid_board_simple_play(Board, Coordinates)
+        ).
+
+
+map_valid_board_simple_play(Board, Coordinates) :-
+        transpose(Board, TransposedBoard),
+        find_last_rows(TransposedBoard, 1, [], Coordinates).
+
+
+% Encontra a última linha preenchida de cada coluna
+find_last_rows([], _, Acc, Acc).
+find_last_rows([Col|Tail], ColIndex, Acc, Coordinates) :-
+        reverse(Col, ReversedCol),
+        (
+                nth0(RowReverseIndex, ReversedCol, e), ! ->
+                (
+                        length(Col,L),
+                        RowIndex is L - RowReverseIndex,
+                        append(Acc, [(RowIndex, ColIndex)], Result)
+                );
+                append(Acc, [], Result)
+        ),
+        NewColIndex is ColIndex + 1,
+        find_last_rows(Tail, NewColIndex, Result, Coordinates).
+
+
+
+map_valid_board_normal_play([], _, Acc, Acc).
+map_valid_board_normal_play([Row|Tail], RowIndex, Acc, Coordinates) :-
         map_valid_row_play(Row, RowIndex, RowCoordinates),
         append(Acc, RowCoordinates, Result),
         NewRowIndex is RowIndex + 1,
-        map_valid_board_play(Tail, NewRowIndex, Result, Coordinates).
+        map_valid_board_normal_play(Tail, NewRowIndex, Result, Coordinates).
 
 % Mapeia uma lista de coordenadas disponívels `e` para serem jogadas dada uma linha `Row`. 
 % Este predicado varre casa por casa em uma linha de forma recursiva.
@@ -152,4 +180,3 @@ assert_diagonal(Board, I, Symbol) :-
                 I1 is I + 1,
                 assert_diagonal(Board, I1, Symbol)
         ).
-

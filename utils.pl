@@ -58,3 +58,12 @@ replace_board_element(Board, RowIndex, ColumnIndex, NewElement, NewBoard) :-
         nth1(ColumnIndex, NewRow, NewElement, TransferRow),
         nth1(RowIndex, NewBoard, NewRow, TransferBoard).
 
+% Verifica se é versão normal.
+isNormalPlay(X) :-
+        X = normal.
+
+% Verifica se é versão simplificada.
+isSimplePlay(X) :-
+        X = simplificada.
+
+if(Condition,Then) :- Condition, !, Then.

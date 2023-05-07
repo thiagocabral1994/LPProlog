@@ -7,33 +7,38 @@
         consult('minimax.pl'), 
         use_module(minimax, all).
 
-play(NumberOfRows) :-
+play(Version, NumberOfRows) :-
         initial_board(NumberOfRows, InitialBoard),
         board(InitialBoard),
         writeln('Tabuleiro Inicial:'),
         print_board(InitialBoard),
         repeat,
         (
-                human_play;
-                computer_play;
+                human_play(Version);
+                computer_play(Version);
                 board(Board),
                 assert_board_is_full(Board),
                 writeln('Empate!'), !
         ).
 
-human_play :-
+human_play(Version):-
         board(Board),
-        read_play(Board),
-        % read_play2(Board),
+        (   isNormalPlay(Version)
+        ->  read_normal_play(Board)
+        ;   (   isSimplePlay(Version)
+                ->  read_simple_play(Board)
+                )
+        ),
         board(NewBoard),
         print_board(NewBoard),
         nl,
         assert_victory(NewBoard, x),
         writeln('Você ganhou o jogo da Velha!').
 
-computer_play :-
+computer_play(Version) :-
         board(Board),
-        minimax(Board, NewBoard),
+        minimax(Version, Board, NewBoard),
+        writeln(NewBoard),
         replace_board(NewBoard),
         writeln('Computador Jogou:'),
         print_board(NewBoard),
@@ -41,7 +46,7 @@ computer_play :-
         assert_victory(NewBoard, o),
         writeln('Computador ganhou o jogo da Velha!').
 
-read_play(Board) :-
+read_normal_play(Board) :-
         length(Board, NumberOfRows),
         NumberOfColumns is NumberOfRows + 1,
         repeat,
@@ -55,7 +60,7 @@ read_play(Board) :-
         replace_board(NewBoard),
         !.
 
-read_play2(Board) :-
+read_simple_play(Board) :-
         length(Board, NumberOfRows),
         NumberOfColumns is NumberOfRows + 1,
         format('Digite a coluna (1 a ~w): ', [NumberOfColumns]),
