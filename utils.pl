@@ -62,8 +62,3 @@ replace_board_element(Board, RowIndex, ColumnIndex, NewElement, NewBoard) :-
 isNormalPlay(X) :-
         X = normal.
 
-% Verifica se é versão simplificada.
-isSimplePlay(X) :-
-        X = simplificada.
-
-if(Condition,Then) :- Condition, !, Then.

@@ -25,9 +25,8 @@ human_play(Version):-
         board(Board),
         (   isNormalPlay(Version)
         ->  read_normal_play(Board)
-        ;   (   isSimplePlay(Version)
-                ->  read_simple_play(Board)
-                )
+        ;  
+        read_simple_play(Board)
         ),
         board(NewBoard),
         print_board(NewBoard),
