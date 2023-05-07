@@ -38,7 +38,6 @@ human_play(Version):-
 computer_play(Version) :-
         board(Board),
         minimax(Version, Board, NewBoard),
-        writeln(NewBoard),
         replace_board(NewBoard),
         writeln('Computador Jogou:'),
         print_board(NewBoard),
