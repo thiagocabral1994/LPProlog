@@ -7,23 +7,31 @@ play(NumberOfRows) :-
         writeln('Tabuleiro Inicial:'),
         print_board(InitialBoard),
         repeat,
-        human_play;
-        computer_play.
+        (
+                human_play;
+                computer_play;
+                board(Board),
+                assert_full_board(Board),
+                writeln('Empate!'), !
+        ).
 
 human_play :-
         board(Board),
-        % read_play(Board),
-        read_play2(Board),
+        read_play(Board),
+        % read_play2(Board),
         board(NewBoard),
         print_board(NewBoard),
+        nl,
         assert_victory(NewBoard, x),
         writeln('Você ganhou o jogo da Velha!').
 
 computer_play :-
-        % board(Board),
-        % read_play(Board),
-        board(NewBoard),
+        board(Board),
+        minimax(Board, NewBoard),
+        replace_board(NewBoard),
+        writeln('Computador Jogou:'),
         print_board(NewBoard),
+        nl,
         assert_victory(NewBoard, o),
         writeln('Computador ganhou o jogo da Velha!').
 
@@ -83,6 +91,13 @@ replace_board_element(Board, RowIndex, ColumnIndex, NewElement, NewBoard) :-
         nth1(ColumnIndex, OldRow, e, TransferRow),
         nth1(ColumnIndex, NewRow, NewElement, TransferRow),
         nth1(RowIndex, NewBoard, NewRow, TransferBoard).
+
+assert_full_row(Row) :-
+        not(member(e, Row)).
+
+assert_full_board(Board) :-
+        flatten(Board, FlattenBoard),
+        assert_full_row(FlattenBoard).
 
 assert_victory(Board, Symbol) :-
         check_victory_state(Board, Symbol).
@@ -155,31 +170,100 @@ replace_board(NewBoard) :-
 
 assert_valid_play(Element) :- Element = e.
 
-% MINMAX para o jogador 'o'
-minmax :-
-        writeln('TODO').
+minimax(Board, BestBoard) :-
+        map_valid_board_play(Board, Coordinates),
+        minimax(Board, o, 0, Coordinates, [], BoardStates),
+        find_best_score(o, BoardStates, BestState),
+        BestState = (BestBoard, _).
 
-get_next_available_board_state(NewBoard) :-
-        board(Board),
-        get_next_available_board_state(Board, o, NewBoard),
-        print_board(NewBoard).
-
-% Isso aqui ainda não tá certo. To tentando fazer sentido aqui.
-get_next_available_board_state(Board, Symbol, NewBoard) :- 
-        loop_through(Row, Col),
-        get_board_element(Board, Row, Col, Element),
-        Element = e,
+minimax(_, _, _, [], Acc, Acc).
+minimax(Board, Symbol, Depth, [(Row, Col) | Tail], Acc, BoardStates) :-
         replace_board_element(Board, Row, Col, Symbol, NewBoard),
-        print_board(NewBoard),
-        nl,
+        get_score(NewBoard, Score, Depth),
         (
-                assert_victory(NewBoard, x), fail;
-                assert_victory(NewBoard, o);
                 (
-                        Symbol = x -> get_next_available_board_state(NewBoard, o, _);
-                        get_next_available_board_state(NewBoard, x, _), fail
-                )
+                        % Condição de Vitória
+                        assert_victory(NewBoard, Symbol),
+                        append(Acc, [(NewBoard, Score)], BoardStates)
+                ), !;
+                (
+                        (
+                                % Empate com Tabuleiro Cheio
+                                ( 
+                                        assert_full_board(NewBoard);
+                                        Depth > 2
+                                ),
+                                append(Acc, [(NewBoard, Score)], Results)
+                        ), !;
+
+                        % Empate com profundidade disponível
+                        toggle_symbol(Symbol, NewSymbol),
+                        NewDepth is Depth + 1,
+
+                        map_valid_board_play(NewBoard, ChildCoordinates),
+                        minimax(NewBoard, NewSymbol, NewDepth, ChildCoordinates, [], ChildBoardStates),
+                        find_best_score(NewSymbol, ChildBoardStates, BestChildState),
+                        BestChildState = (_, BestChildScore),
+                        append(Acc, [(NewBoard, BestChildScore)], Results)
+                ),
+                minimax(Board, Symbol, Depth, Tail, Results, BoardStates)
         ), !.
+
+find_best_score(Symbol, [Head|Tail], BestState) :-
+        find_best_score(Symbol, Tail, Head, BestState), !.
+
+find_best_score(_, [], Acc, Acc).
+
+find_best_score(Symbol, [Head|Tail], Acc, BestState) :-
+        Acc = (_, BestScore),
+        Head = (_, Score),
+        evaluate_score(Score, BestScore, Symbol) -> 
+                find_best_score(Symbol, Tail, Head, BestState);
+                find_best_score(Symbol, Tail, Acc, BestState).
+
+map_valid_board_play(Board, Coordinates) :-
+        map_valid_board_play(Board, 1, [], Coordinates).
+map_valid_board_play([], _, Acc, Acc).
+map_valid_board_play([Row|Tail], RowIndex, Acc, Coordinates) :-
+        map_valid_row_play(Row, RowIndex, RowCoordinates),
+        append(Acc, RowCoordinates, Result),
+        NewRowIndex is RowIndex + 1,
+        map_valid_board_play(Tail, NewRowIndex, Result, Coordinates).
+
+map_valid_row_play(Row, RowIndex, Coordinates) :-
+        map_valid_row_play(Row, RowIndex, 1, [], Coordinates).
+map_valid_row_play([], _, _, Acc, Acc).
+map_valid_row_play([Element|Tail], RowIndex, ColIndex, Acc, Coordinates) :-
+        (
+                assert_valid_play(Element) ->
+                append(Acc, [(RowIndex, ColIndex)], Result);
+                append(Acc, [], Result)
+        ),
+        NewColIndex is ColIndex + 1,
+        map_valid_row_play(Tail, RowIndex, NewColIndex, Result, Coordinates).
+
+
+toggle_symbol(x, o).
+toggle_symbol(o, x).
+
+evaluate_score(Score, BestScore, o) :- Score > BestScore.
+evaluate_score(Score, BestScore, x) :- Score < BestScore.
+
+get_score(Board, Score, Depth) :-
+        get_number_of_rows(NumberOfRows),
+        get_number_of_cols(NumberOfColumns),
+        MaxScore is NumberOfRows * NumberOfColumns,
+        (
+                (
+                        assert_victory(Board, x), 
+                        Score is Depth - MaxScore
+                ), !;
+                (
+                        assert_victory(Board, o),
+                        Score is MaxScore - Depth
+                ), !;
+                Score = 0
+        ).
 
 get_number_of_rows(NumberOfRows) :-
         board(Board),
@@ -189,8 +273,3 @@ get_number_of_cols(NumberOfColumns) :-
         get_number_of_rows(NumberOfRows),
         NumberOfColumns is NumberOfRows + 1.
 
-loop_through(Row, Col) :-
-        get_number_of_rows(NumberOfRows),
-        get_number_of_cols(NumberOfColumns),
-        between(1, NumberOfRows, Row),
-        between(1, NumberOfColumns, Col).
