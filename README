@@ -1,0 +1,9 @@
+INSTRUÇÕES:
+
+1) Na raiz do projeto, executar `swipl main.pl`;
+
+2) Para iniciar o jogo, escreva o seguinte predicado:
+
+:- play(Version, N).
+
+Onde Version deverá ser ou `normal` ou `simplificado`, e N >= 2. 
