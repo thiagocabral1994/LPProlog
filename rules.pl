@@ -1,3 +1,8 @@
+% Desenvolvedores:
+%
+% Daniel Augusto Machado Baeta - 201965122C
+% Thiago do Vale Cabral - 201965220AC
+
 % Verifica se o elemento do tabuleiro é vazio (empty).
 assert_valid_play(Element) :- Element = e.
 

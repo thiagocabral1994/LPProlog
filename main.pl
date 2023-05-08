@@ -1,3 +1,9 @@
+% Desenvolvedores:
+%
+% Daniel Augusto Machado Baeta - 201965122C
+% Thiago do Vale Cabral - 201965220AC
+
+
 :- use_module(library(clpfd)), use_module(library(lists)).
 
 :-      consult('utils.pl'), 

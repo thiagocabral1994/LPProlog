@@ -1,4 +1,9 @@
 
+% Desenvolvedores:
+%
+% Daniel Augusto Machado Baeta - 201965122C
+% Thiago do Vale Cabral - 201965220AC
+
 % Encontra a melhor jogada, baseado na busca minimax.
 %
 % A busca é inicializada com o símbolo `o`, respectivo à jogada do computador.
