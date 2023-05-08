@@ -1,3 +1,7 @@
+% Desenvolvedores:
+%
+% Daniel Augusto Machado Baeta - 201965122C
+% Thiago do Vale Cabral - 201965220AC
 
 % Inicializa um tabuleiro de tamanho Nx(N+1). Remove tabuleiro existente.
 initial_board(N, Board) :-
@@ -32,11 +36,6 @@ replace_board(NewBoard) :-
 get_number_of_rows(NumberOfRows) :-
         board(Board),
         length(Board, NumberOfRows).
-
-% Desenvolvedores:
-%
-% Daniel Augusto Machado Baeta - 201965122C
-% Thiago do Vale Cabral - 201965220AC
 
 % Retorna o número de colunas em um tabuleiro existente. 
 % É uma premissa de que o número de colunas será sempre o `NumberOfRows + 1`
