@@ -14,6 +14,11 @@
         use_module(minimax, all).
 
 play(Version, NumberOfRows) :-
+        NumberOfRows >= 2,
+        ( 
+                is_normal_play(Version), !;
+                is_simple_play(Version)
+        ),
         initial_board(NumberOfRows, InitialBoard),
         board(InitialBoard),
         writeln('Tabuleiro Inicial:'),
@@ -29,7 +34,7 @@ play(Version, NumberOfRows) :-
 
 human_play(Version):-
         board(Board),
-        (   isNormalPlay(Version)
+        (   is_normal_play(Version)
         ->  read_normal_play(Board)
         ;  
         read_simple_play(Board)

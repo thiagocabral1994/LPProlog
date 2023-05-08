@@ -63,6 +63,8 @@ replace_board_element(Board, RowIndex, ColumnIndex, NewElement, NewBoard) :-
         nth1(RowIndex, NewBoard, NewRow, TransferBoard).
 
 % Verifica se é versão normal.
-isNormalPlay(X) :-
+is_normal_play(X) :-
         X = normal.
 
+is_simple_play(X) :-
+        X = simplificado.

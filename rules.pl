@@ -54,7 +54,7 @@ find_best_score(Symbol, [Head|Tail], Acc, BestState) :-
 
 % Mapeia uma lista de coordenadas disponívels `e` para serem jogadas dado um tabuleiro `Board`. 
 map_valid_board_play(Version, Board, Coordinates) :-
-        (   isNormalPlay(Version)
+        (   is_normal_play(Version)
         ->  map_valid_board_normal_play(Board, 1, [], Coordinates)
         ;   
         map_valid_board_simple_play(Board, Coordinates)
